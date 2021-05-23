@@ -49,7 +49,10 @@
 export default {
 	data() {
 		return {
-			title: 'Hello'
+			title: 'Hello',
+			data:{
+				log:"这是新的记录"
+			}
 		};
 	},
 	onLoad() {},
