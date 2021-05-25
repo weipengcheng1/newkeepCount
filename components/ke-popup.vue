@@ -1,6 +1,18 @@
 <template>
 	<view class="ke-popup__box">
-		<view class="popup-content__box"><view class="header_box"></view></view>
+		<view class="popup-content__box">
+			<view class="ke-popup__header__box">
+				<view class="ke-popup__header__btn">
+					<text class="iconfont icon-guanbi"></text>
+					<text>取消</text>
+				</view>
+				<view class="ke-popup__header__title"><text>我是标题</text></view>
+				<view class="ke-popup__header_btn">
+					<text class="iconfont icon-guanbi"></text>
+					<text>确定</text>
+				</view>
+			</view>
+		</view>
 	</view>
 </template>
 
@@ -29,6 +41,15 @@ export default {
 		position: absolute;
 		bottom: 0;
 		left: 0;
+	}
+	.ke-popup__header__box {
+		width: 100%;
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		view {
+			flex: 0 0 calc(100% / 3);
+		}
 	}
 }
 </style>
