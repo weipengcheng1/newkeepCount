@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 2548205 */
-  src: url('//at.alicdn.com/t/font_2548205_8a8vpa539ec.woff2?t=1621764695292') format('woff2'),
-       url('//at.alicdn.com/t/font_2548205_8a8vpa539ec.woff?t=1621764695292') format('woff'),
-       url('//at.alicdn.com/t/font_2548205_8a8vpa539ec.ttf?t=1621764695292') format('truetype');
+  src: url('//at.alicdn.com/t/font_2548205_91z5krzd8uk.woff2?t=1622704658797') format('woff2'),
+       url('//at.alicdn.com/t/font_2548205_91z5krzd8uk.woff?t=1622704658797') format('woff'),
+       url('//at.alicdn.com/t/font_2548205_91z5krzd8uk.ttf?t=1622704658797') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,126 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-jianpan_shanchu:before {
+  content: "\e70c";
+}
+
+.icon-yiliao:before {
+  content: "\e601";
+}
+
+.icon-renqing:before {
+  content: "\e628";
+}
+
+.icon-zhuanzhang:before {
+  content: "\e619";
+}
+
+.icon-qita:before {
+  content: "\e618";
+}
+
+.icon-fushi:before {
+  content: "\e60a";
+}
+
+.icon-qinzi:before {
+  content: "\e612";
+}
+
+.icon-shengyie:before {
+  content: "\e654";
+}
+
+.icon-yundong:before {
+  content: "\e613";
+}
+
+.icon-shenghuofuwu:before {
+  content: "\ea41";
+}
+
+.icon-mall-normal:before {
+  content: "\e602";
+}
+
+.icon-jiaotong:before {
+  content: "\e61a";
+}
+
+.icon-yule:before {
+  content: "\eaad";
+}
+
+.icon-zhufang:before {
+  content: "\e7f2";
+}
+
+.icon-lvyou:before {
+  content: "\e604";
+}
+
+.icon-icon-test:before {
+  content: "\e846";
+}
+
+.icon-tuikuan:before {
+  content: "\e603";
+}
+
+.icon-qita1:before {
+  content: "\e691";
+}
+
+.icon-chongwu:before {
+  content: "\e63f";
+}
+
+.icon-hongbao:before {
+  content: "\e658";
+}
+
+.icon-zhuanzhang1:before {
+  content: "\e608";
+}
+
+.icon-jiangjin:before {
+  content: "\e6ca";
+}
+
+.icon-canyin:before {
+  content: "\e64e";
+}
+
+.icon-qita2:before {
+  content: "\e698";
+}
+
+.icon-renqingwanglai:before {
+  content: "\e673";
+}
+
+.icon-gongzi:before {
+  content: "\e6a5";
+}
+
+.icon-jiudian:before {
+  content: "\e781";
+}
+
+.icon-qinshuka:before {
+  content: "\e718";
+}
+
+.icon-hongbao1:before {
+  content: "\e657";
+}
+
+.icon-RMB:before {
+  content: "\e66f";
 }
 
 .icon-guanbi:before {

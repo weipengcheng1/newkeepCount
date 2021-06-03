@@ -41,20 +41,25 @@
 			</view>
 		</view>
 		<view class="fixed_box">
-			<view class="fixed-cotent_box"><text class="iconfont icon-jinrujizhang"></text></view>
+			<view class="fixed-cotent_box">
+				<text class="iconfont icon-jinrujizhang"></text>
+				<text class="icon-text">记一笔</text>
+			</view>
 		</view>
-		<ke-popup></ke-popup>
+		<xmPopup :show="show"></xmPopup>
 	</view>
 </template>
 
 <script>
-import kePopup from '@/components/ke-popup.vue';
+import xmPopup from '@/components/xm-popup.vue';
 export default {
 	components: {
-		kePopup
+		xmPopup
 	},
 	data() {
-		return {};
+		return {
+			show: true
+		};
 	},
 	onLoad() {},
 	methods: {}
@@ -185,9 +190,9 @@ export default {
 	}
 }
 .fixed_box {
-	width: 80rpx;
-	height: 80rpx;
-	border-radius: 50%;
+	width: 200rpx;
+	height: 94rpx;
+	border-radius: 60rpx;
 	background-color: #ffffff;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
 	position: fixed;
@@ -201,9 +206,15 @@ export default {
 		height: 100%;
 	}
 	.icon-jinrujizhang {
-		font-size: 40rpx;
+		font-size: 48rpx;
 		color: #68a1e8;
 		font-weight: bold;
+	}
+	.icon-text {
+		font-size: 28rpx;
+		color: #68a1e8;
+		font-weight: bold;
+		margin-left: 10rpx;
 	}
 }
 </style>
