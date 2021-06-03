@@ -1,21 +1,21 @@
 <template>
 	<view class="">
-		<u-popup v-model="show" mode="bottom" height="87%" border-radius="24" :closeable="true">
-			<view class="" style="overflow: hidden;height: 100%;">
+		<u-popup v-model="show" mode="bottom"  border-radius="24" :closeable="true">
+			<view class="" style="overflow: hidden;height: 100%;position: relative;">
 				<view class="title__box"><text>记一笔</text></view>
 				<view class="booking_box">
 					<view class="booking-head__box">
 						<view class="head-left__box">
-							<view :class="['common-item__box left-item__box', activeType === 'pay' ? 'active-type__box' : '']" @click="switchRevenueAndExpense('pay')">
+							<view :class="['common-item__box left-item__box', tallyObj.type === 'pay' ? 'active-pay__box' : '']" @click="switchRevenueAndExpense('pay')">
 								<text>支出</text>
 							</view>
-							<view :class="['common-item__box left-item__box', activeType === 'income' ? 'active-type__box' : '']" @click="switchRevenueAndExpense('income')">
+							<view :class="['common-item__box left-item__box', tallyObj.type === 'income' ? 'active-income__box' : '']" @click="switchRevenueAndExpense('income')">
 								<text>收入</text>
 							</view>
 						</view>
 						<view class="head-right__box">
 							<view class="common-item__box right-item__box" @click="caleObj.caleShow = true">
-								<text>{{ caleObj.nowDate | dateFilter }}</text>
+								<text>{{ tallyObj.nowDate | dateFilter }}</text>
 								<text class="iconfont icon-f11-copy"></text>
 							</view>
 						</view>
@@ -24,15 +24,26 @@
 						<!-- 输入 -->
 						<view class="body-int__box">
 							<text class="iconfont icon-RMB"></text>
-							<input type="number" :value="inputVal" />
+							<input type="number" :value="tallyObj.inputVal" />
 						</view>
 						<!-- 分类 -->
 						<view class="body-type_list__box">
 							<scroll-view class="scroll-view__box" :scroll-x="true" :enable-flex="true">
 								<template v-for="(item, index) in typeList">
-									<view class="view-item__box" v-if="item.label === activeType" v-for="(it, k) in item.children">
+									<view class="view-item__box" v-if="item.label === tallyObj.type" v-for="(it, k) in item.children">
 										<view class="item_box" :key="it.id">
-											<text :class="['iconfont', it.icon]"></text>
+											<text
+												:class="[
+													'iconfont icon-type__box',
+													it.icon,
+													tallyObj.type == 'pay' && tallyObj.typeId === it.id
+														? 'active-pay__box'
+														: tallyObj.type === 'income' && tallyObj.typeId === it.id
+														? 'active-income__box'
+														: ''
+												]"
+											></text>
+
 											<text>{{ it.label }}</text>
 										</view>
 									</view>
@@ -42,7 +53,7 @@
 						<!-- 备注 -->
 						<view class="body-note__box"><text>添加备注</text></view>
 						<!-- 键盘 -->
-						<view class="body-key__box"><xm-keyboard :enter-bg="enterBg" @key-item-click="keyItemClick"></xm-keyboard></view>
+						<view class="body-key__box"><xm-keyboard :enter-bg="tallyObj.enterBg" @key-item-click="keyItemClick"></xm-keyboard></view>
 					</view>
 				</view>
 			</view>
@@ -79,13 +90,17 @@ export default {
 	},
 	data() {
 		return {
-			caleObj: {
-				caleShow: false,
-				nowDate: new Date().getTime()
+			//当前值
+			tallyObj: {
+				type: 'pay',
+				typeId: 1,
+				nowDate: new Date().getTime(),
+				inputVal: '',
+				enterBg: '#92c3e8'
 			},
-			inputVal: '',
-			activeType: 'pay',
-			enterBg: '',
+			caleObj: {
+				caleShow: false
+			},
 			typeList: [
 				{
 					id: 1,
@@ -144,21 +159,43 @@ export default {
 				timeFormat = `${year}年${month}月${day}日`;
 			}
 			return timeFormat;
+		},
+		iconFilter(val) {
+			console.log(val);
 		}
 	},
 	methods: {
 		switchRevenueAndExpense(type) {
-			this.activeType = type;
+			//样式切换
+			this.tallyObj.type = type;
+			this.tallyObj.typeId = 1;
+			this.tallyObj.enterBg = this.isSceneBgColor(this.tallyObj.type, this.tallyObj.inputVal);
 		},
 		calendarChange(e) {
 			const { result } = e;
-			this.caleObj.nowDate = result;
+			this.tallyObj.nowDate = new Date(result).getTime();
 		},
 		//键盘输入
 		keyItemClick(item) {
-			this.enterBg = item ? '#68a1e8' : '';
+			this.tallyObj.enterBg = this.isSceneBgColor(this.tallyObj.type, item);
 			if (Number(item) >= 1000000) return this.$msg('输入金额不能大于1000000');
-			this.inputVal = item;
+			this.tallyObj.inputVal = item;
+		},
+
+		//判断当前场景颜色
+		isSceneBgColor(type, intVal) {
+			let bgColor = '';
+			if (type === 'pay' && intVal) {
+				bgColor = '#68a1e8';
+			} else if (type === 'pay' && !intVal) {
+				bgColor = '#92c3e8';
+			} else if (type === 'income' && intVal) {
+				console.log(1111);
+				bgColor = '#f0b73a';
+			} else {
+				bgColor = '#f5d89a';
+			}
+			return bgColor;
 		}
 	}
 };
@@ -232,10 +269,6 @@ export default {
 	.icon-RMB {
 		font-size: 60rpx;
 	}
-	.active-type__box {
-		background-color: #68a1e8;
-		color: #ffffff;
-	}
 	.body-type_list__box {
 		box-sizing: border-box;
 		width: 100%;
@@ -249,21 +282,29 @@ export default {
 	.view-item__box {
 		flex: 0 0 132rpx;
 	}
+	.icon-type__box {
+		width: 80rpx;
+		height: 80rpx;
+		border-radius: 50%;
+		background-color: #e7e7e7;
+		text-align: center;
+		line-height: 80rpx;
+		font-size: 40rpx;
+		color: #a7a7aa;
+	}
+	.active-pay__box {
+		background-color: #68a1e8;
+		color: #ffffff;
+	}
+	.active-income__box {
+		background-color: #f0b73a;
+		color: #ffffff;
+	}
 	.item_box {
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: center;
 		text {
-			&:nth-child(1) {
-				width: 80rpx;
-				height: 80rpx;
-				border-radius: 50%;
-				background-color: #e7e7e7;
-				text-align: center;
-				line-height: 80rpx;
-				font-size: 40rpx;
-				color: #a7a7aa;
-			}
 			&:nth-child(2) {
 				margin-top: 18rpx;
 				font-size: 24rpx;
@@ -288,6 +329,9 @@ export default {
 		margin: 0 -50rpx;
 		box-sizing: border-box;
 		padding: 20rpx 50rpx;
+		// position: absolute;
+		// bottom: 0;
+		// width: 100%;
 	}
 }
 .note__box {
@@ -310,7 +354,7 @@ export default {
 	}
 	.btn__box {
 		width: 200rpx;
-		line-height: 60rpx;
+		line-height: 74rpx;
 		border-radius: 40rpx;
 		background-color: #68a1e8;
 		color: #ffffff;

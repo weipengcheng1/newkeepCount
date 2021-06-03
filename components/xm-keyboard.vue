@@ -36,6 +36,14 @@ export default {
 	},
 	methods: {
 		keyItmeClick(item) {
+			//拼接之前先验证一下当前字符串中是否存在其小数点
+			if (item == '.') {
+				let keyDataArr = this.keyData.split('');
+				let filterArr = keyDataArr.filter(it => {
+					return it === '.';
+				});
+				if (filterArr.length >= 1) return;
+			}
 			this.keyData += item;
 			this.$emit('key-item-click', this.keyData);
 		},
