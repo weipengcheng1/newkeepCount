@@ -41,28 +41,54 @@
 			</view>
 		</view>
 		<view class="fixed_box">
-			<view class="fixed-cotent_box">
+			<view class="fixed-cotent_box" @click="makeNoteOfIt">
 				<text class="iconfont icon-jinrujizhang"></text>
 				<text class="icon-text">记一笔</text>
 			</view>
 		</view>
-		<xmPopup :show="show"></xmPopup>
+		<xmPopup :show="show" :type-list="typeList" @close="show = false"></xmPopup>
 	</view>
 </template>
 
 <script>
 import xmPopup from '@/components/xm-popup.vue';
+import { getKeepCountType } from '@/util/http.js';
 export default {
 	components: {
 		xmPopup
 	},
 	data() {
 		return {
-			show: true
+			show: false,
+			typeList: []
 		};
 	},
-	onLoad() {},
-	methods: {}
+	onLoad() {
+		
+	},
+	methods: {
+		getKeepCountTypeList(openid) {
+			this.$request({ url: `${getKeepCountType}?openid=${openid}` })
+				.then(resp => {
+					if (resp.statusCode === 200) {
+						const { code, msg, items } = resp.data;
+						if (code === 0 && msg === 'success') {
+							this.typeList = items;
+						} else {
+							this.$msg(msg);
+						}
+					}
+				})
+				.catch(error => {
+					this.$msg(msg);
+				});
+		},
+		makeNoteOfIt() {
+			//先判断用户是否登录
+			this.getKeepCountTypeList('');
+			this.show = true;
+		}
+	}
 };
 </script>
 

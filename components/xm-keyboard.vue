@@ -15,7 +15,7 @@
 		</view>
 		<view class="key-right">
 			<view hover-class="view-hover__box" class="comm-key__box" @click="keyDeleteItem"><text class="iconfont icon-jianpan_shanchu"></text></view>
-			<view class="comm-key__box" :style="{ 'background-color': enterBg ? enterBg : '#92c3e8' }"><text>确定</text></view>
+			<view class="comm-key__box" :style="{ 'background-color': enterBg ? enterBg : '#92c3e8' }" @click="enterKey"><text>确定</text></view>
 		</view>
 	</view>
 </template>
@@ -37,6 +37,7 @@ export default {
 	methods: {
 		keyItmeClick(item) {
 			//拼接之前先验证一下当前字符串中是否存在其小数点
+			let { keyData } = this;
 			if (item == '.') {
 				let keyDataArr = this.keyData.split('');
 				let filterArr = keyDataArr.filter(it => {
@@ -44,7 +45,9 @@ export default {
 				});
 				if (filterArr.length >= 1) return;
 			}
-			this.keyData += item;
+			keyData += item;
+			if (Number(keyData) >= 1000000) return this.$msg('输入金额不能大于1000000');
+			this.keyData = keyData;
 			this.$emit('key-item-click', this.keyData);
 		},
 		keyDeleteItem() {
@@ -58,6 +61,10 @@ export default {
 			let str = keyDataArr.join('');
 			this.keyData = str;
 			this.$emit('key-item-click', this.keyData);
+		},
+		//确认事件
+		enterKey() {
+			this.$emit('enter-key');
 		}
 	}
 };

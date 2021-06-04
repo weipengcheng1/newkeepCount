@@ -1,9 +1,19 @@
 <script>
 export default {
 	onLaunch: function() {
+		const { session_key, openid } = uni.getStorageSync('openid');
+		if (!session_key || !openid) {
+			this.$store.commit('login');
+		}
 	},
 	onShow: function() {
-		console.log('App Show');
+		//判断用户有没有登录
+		setTimeout(() => {
+			const { session_key, openid } = uni.getStorageSync('openid');
+			if (session_key && openid) {
+				this.$store.commit('getUserPhoneByOpenid', { openid: openid });
+			}	
+		}, 1500);
 	},
 	onHide: function() {
 		console.log('App Hide');

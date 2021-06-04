@@ -1,6 +1,6 @@
 <template>
 	<view class="">
-		<u-popup v-model="show" mode="bottom"  border-radius="24" :closeable="true">
+		<u-popup v-model="popupShow" mode="bottom" border-radius="24" :closeable="true" @close="closePopup">
 			<view class="" style="overflow: hidden;height: 100%;position: relative;">
 				<view class="title__box"><text>记一笔</text></view>
 				<view class="booking_box">
@@ -24,36 +24,35 @@
 						<!-- 输入 -->
 						<view class="body-int__box">
 							<text class="iconfont icon-RMB"></text>
-							<input type="number" :value="tallyObj.inputVal" />
+							<input type="number" :disabled="true" :focus="true" @focus="catchtouchstartTap" :value="tallyObj.inputVal" />
 						</view>
 						<!-- 分类 -->
 						<view class="body-type_list__box">
-							<scroll-view class="scroll-view__box" :scroll-x="true" :enable-flex="true">
+							<scroll-view class="scroll-view__box" scroll-left="0" :scroll-x="true" :enable-flex="true">
 								<template v-for="(item, index) in typeList">
-									<view class="view-item__box" v-if="item.label === tallyObj.type" v-for="(it, k) in item.children">
-										<view class="item_box" :key="it.id">
+									<view class="view-item__box" v-if="item.typeEn === tallyObj.type" v-for="(it, k) in item.children">
+										<view class="item_box" :key="it.id" @click="chooseTypeDir(it.id)">
 											<text
 												:class="[
 													'iconfont icon-type__box',
-													it.icon,
-													tallyObj.type == 'pay' && tallyObj.typeId === it.id
+													it.typeDirIcon,
+													tallyObj.type == 'pay' && tallyObj.typeId == it.id
 														? 'active-pay__box'
-														: tallyObj.type === 'income' && tallyObj.typeId === it.id
+														: tallyObj.type === 'income' && tallyObj.typeId == it.id
 														? 'active-income__box'
 														: ''
 												]"
 											></text>
-
-											<text>{{ it.label }}</text>
+											<text>{{ it.typeDirName }}</text>
 										</view>
 									</view>
 								</template>
 							</scroll-view>
 						</view>
 						<!-- 备注 -->
-						<view class="body-note__box"><text>添加备注</text></view>
+						<view class="body-note__box" @click="addBillNote"><text>添加备注</text></view>
 						<!-- 键盘 -->
-						<view class="body-key__box"><xm-keyboard :enter-bg="tallyObj.enterBg" @key-item-click="keyItemClick"></xm-keyboard></view>
+						<view class="body-key__box"><xm-keyboard :enter-bg="tallyObj.enterBg" @key-item-click="keyItemClick" @enter-key="enterSubmitBill"></xm-keyboard></view>
 					</view>
 				</view>
 			</view>
@@ -61,13 +60,15 @@
 		<!-- 日历 -->
 		<u-calendar v-model="caleObj.caleShow" mode="date" active-bg-color="#68a1e8" @change="calendarChange"></u-calendar>
 		<!-- 备注 -->
-		<u-popup v-model="show" mode="bottom" height="25%" border-radius="24" :closeable="true">
+		<u-popup v-model="caleObj.noteShow" mode="bottom" :mask-close-able="false" height="25%" border-radius="24" :closeable="true">
 			<view class="note__box">
 				<view class="title__box"><text>请添加备注</text></view>
 				<view class="body__box">
-					<view class="note-int__box"><u-field label-width="0" :maxlength="30" placeholder="请输入备注内容" v-model="mobile" :border-bottom="false"></u-field></view>
+					<view class="note-int__box">
+						<u-field label-width="0" :maxlength="30" placeholder="请输入备注内容" v-model="tallyObj.noteValue" :border-bottom="false"></u-field>
+					</view>
 					<view class="note-btn__box">
-						<view class="btn__box"><text>确定</text></view>
+						<view class="btn__box" @click="caleObj.noteShow = false"><text>确定</text></view>
 					</view>
 				</view>
 			</view>
@@ -86,6 +87,12 @@ export default {
 		show: {
 			type: Boolean,
 			default: false
+		},
+		typeList: {
+			type: Array,
+			default: () => {
+				return [];
+			}
 		}
 	},
 	data() {
@@ -96,53 +103,33 @@ export default {
 				typeId: 1,
 				nowDate: new Date().getTime(),
 				inputVal: '',
-				enterBg: '#92c3e8'
+				enterBg: '#92c3e8',
+				noteValue: ''
 			},
 			caleObj: {
-				caleShow: false
-			},
-			typeList: [
-				{
-					id: 1,
-					label: 'income',
-					children: [
-						{ id: 1, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 2, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 3, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 4, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 5, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 6, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 7, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 8, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 9, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 11, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 21, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 31, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 41, label: '生意', icon: 'icon-fushi' },
-						{ id: 51, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 61, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 71, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 81, label: '服饰美容', icon: 'icon-fushi' },
-						{ id: 91, label: '服饰美容', icon: 'icon-fushi' }
-					]
-				},
-				{
-					id: 2,
-					label: 'pay',
-					children: [
-						{ id: 1, label: '生意', icon: 'icon-shengyie' },
-						{ id: 2, label: '生意', icon: 'icon-shengyie' },
-						{ id: 3, label: '生意', icon: 'icon-shengyie' },
-						{ id: 4, label: '生意', icon: 'icon-shengyie' },
-						{ id: 5, label: '生意', icon: 'icon-shengyie' },
-						{ id: 6, label: '生意', icon: 'icon-shengyie' },
-						{ id: 7, label: '生意', icon: 'icon-shengyie' },
-						{ id: 8, label: '生意', icon: 'icon-shengyie' },
-						{ id: 9, label: '生意', icon: 'icon-shengyie' }
-					]
-				}
-			]
+				caleShow: false,
+				noteShow: false
+			}
 		};
+	},
+	watch: {
+		typeList(val) {
+			if (val) this.isActiveClass();
+		},
+		show(val) {
+			console.log(val);
+			this.popupShow = val;
+		}
+	},
+	computed: {
+		popupShow: {
+			get(){
+				return this.show
+			},
+			set() {
+				return this.show;
+			}
+		}
 	},
 	filters: {
 		dateFilter(val) {
@@ -165,10 +152,24 @@ export default {
 		}
 	},
 	methods: {
+		//确认提交账单
+		enterSubmitBill() {
+			//获取参数
+			const { type, typeId, nowDate, inputVal, noteValue } = this.tallyObj;
+			if (inputVal.length <= 0) return this.$msg('请输入正确金额！');
+		},
+		//选择小类
+		chooseTypeDir(id) {
+			this.tallyObj.typeId = id;
+		},
+		//阻止默认键盘
+		catchtouchstartTap() {
+			wx.hideKeyboard();
+		},
 		switchRevenueAndExpense(type) {
 			//样式切换
 			this.tallyObj.type = type;
-			this.tallyObj.typeId = 1;
+			this.isActiveClass();
 			this.tallyObj.enterBg = this.isSceneBgColor(this.tallyObj.type, this.tallyObj.inputVal);
 		},
 		calendarChange(e) {
@@ -178,7 +179,6 @@ export default {
 		//键盘输入
 		keyItemClick(item) {
 			this.tallyObj.enterBg = this.isSceneBgColor(this.tallyObj.type, item);
-			if (Number(item) >= 1000000) return this.$msg('输入金额不能大于1000000');
 			this.tallyObj.inputVal = item;
 		},
 
@@ -196,6 +196,22 @@ export default {
 				bgColor = '#f5d89a';
 			}
 			return bgColor;
+		},
+		//判断active class
+		isActiveClass() {
+			//根据当前类型获取第一个值
+			const item = this.typeList.find(item => {
+				return item.typeEn === this.tallyObj.type;
+			});
+			let childrenId = item.children[0].id;
+			this.tallyObj.typeId = childrenId;
+		},
+		//添加备注
+		addBillNote() {
+			this.caleObj.noteShow = true;
+		},
+		closePopup(){
+			this.$emit("close")
 		}
 	}
 };
