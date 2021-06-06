@@ -37,30 +37,11 @@ export default {
 	methods: {
 		keyItmeClick(item) {
 			//拼接之前先验证一下当前字符串中是否存在其小数点
-			let { keyData } = this;
-			if (item == '.') {
-				let keyDataArr = this.keyData.split('');
-				let filterArr = keyDataArr.filter(it => {
-					return it === '.';
-				});
-				if (filterArr.length >= 1) return;
-			}
-			keyData += item;
-			if (Number(keyData) >= 1000000) return this.$msg('输入金额不能大于1000000');
-			this.keyData = keyData;
-			this.$emit('key-item-click', this.keyData);
+			this.$emit('key-item-click', item);
 		},
 		keyDeleteItem() {
-			//先将string转换成array
-			let { keyData } = this;
-			if (!keyData) return;
-			let keyDataArr = keyData.split('');
-			//删除数组最后一位
-			keyDataArr.splice(-1);
-			//array-->string
-			let str = keyDataArr.join('');
-			this.keyData = str;
-			this.$emit('key-item-click', this.keyData);
+			
+			this.$emit('key-item-delete', this.keyData);
 		},
 		//确认事件
 		enterKey() {

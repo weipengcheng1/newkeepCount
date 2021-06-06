@@ -20,25 +20,55 @@
 		</view>
 		<view class="body_box">
 			<view class="card-list_box">
-				<view class="card-item_box">
-					<view class="item-header__box">
-						<view class="header-left__box">
-							<text>5月14日</text>
-							<text>星期一</text>
+				<template v-for="(item, index) in billList">
+					<view class="card-item_box" :key="index">
+						<view class="item-header__box">
+							<view class="header-left__box">
+								<text>{{ item.nowFormat }}</text>
+								<text>星期一</text>
+							</view>
+							<view class="header-right__box">
+								<view class="">
+									<text class="cate_box">支</text>
+									<text class="money_box">{{ item.payMoney }}</text>
+								</view>
+								<view class="">
+									<text class="cate_box">收</text>
+									<text class="money_box">{{ item.incomeMoney }}</text>
+								</view>
+							</view>
 						</view>
-						<view class="header-right__box">
-							<view class="">
-								<text class="cate_box">支</text>
-								<text class="money_box">0.00</text>
-							</view>
-							<view class="">
-								<text class="cate_box">收</text>
-								<text class="money_box">0.00</text>
-							</view>
+						<view class="body-list__box">
+							<template v-for="(it, key) in item.children">
+								<view class="body-item__box" :key="key">
+									<view class="item-left__box">
+										<text :style="{ 'background-color': it.type == 'pay' ? '#68a1e8' : '#f0b73a' }" :class="['iconfont', it.typeDirIcon]"></text>
+									</view>
+									<view class="item-right__box">
+										<view class="right-left__box">
+											<text>{{ it.typeDirName }}</text>
+											<text>
+												{{ it.billTime }}
+												<text v-if="it.billNote" style="display:inline ;margin: 0 8rpx;">
+													|
+													<text>{{ it.billNote }}</text>
+												</text>
+											</text>
+										</view>
+										<view class="right__box">
+											<text>{{ it.type === 'pay' ? '-' + moneyDecimal(it.billMoney) : '+' + moneyDecimal(it.billMoney) }}</text>
+										</view>
+									</view>
+								</view>
+							</template>
 						</view>
 					</view>
-				</view>
+				</template>
 			</view>
+			<view style="margin:60rpx 0;">
+				<u-loadmore :status="status" :icon-type="iconType" :load-text="loadText" />
+			</view>
+			
 		</view>
 		<view class="fixed_box">
 			<view class="fixed-cotent_box" @click="makeNoteOfIt">
@@ -46,13 +76,13 @@
 				<text class="icon-text">记一笔</text>
 			</view>
 		</view>
-		<xmPopup :show="show" :type-list="typeList" @close="show = false"></xmPopup>
+		<xmPopup :show="show" :type-list="typeList" @close="show = false" @enter-submit="enterSubmitBill"></xmPopup>
 	</view>
 </template>
 
 <script>
 import xmPopup from '@/components/xm-popup.vue';
-import { getKeepCountType } from '@/util/http.js';
+import { getKeepCountType, addBillRecords, getBillList } from '@/util/http.js';
 export default {
 	components: {
 		xmPopup
@@ -60,13 +90,59 @@ export default {
 	data() {
 		return {
 			show: false,
-			typeList: []
+			typeList: [],
+			billList: [],
+			pageInfo: {},
+			nextPage: 1,
+			status: 'loadmore',
+			loadText: {
+				loadmore: '上拉加载更多',
+				nomore: '我也是有底线的'
+			}
 		};
 	},
 	onLoad() {
-		
+		const { openid } = uni.getStorageSync('openid');
+		this.getBillListByOpenid(openid, this.nextPage);
+		this.getSystemInfo()
+	},
+	onReachBottom() {
+		console.log(111);
+		const { openid } = uni.getStorageSync('openid');
+		if (this.pageInfo.nowPage + 1 <= this.pageInfo.totalPage) {
+			this.getBillListByOpenid(openid, this.nextPage);
+		} else {
+			this.status = 'nomore';
+		}
 	},
 	methods: {
+		getSystemInfo(){
+			this.$system().then(resp=>{
+				console.log(resp)
+			})
+		},
+		moneyDecimal(val) {
+			return val.toFixed(2);
+		},
+		//获取账单列表
+		getBillListByOpenid(openid, page) {
+			this.$request({ url: `${getBillList}?openid=${openid}&page=${page}` })
+				.then(resp => {
+					if (resp.statusCode === 200) {
+						const { code, msg, items } = resp.data;
+						if (code === 0) {
+							this.billList = [...this.billList, ...items.list];
+							this.pageInfo = items.pageInfo;
+							this.nextPage = this.pageInfo.nextPage;
+						} else {
+							this.$msg(msg);
+						}
+					}
+				})
+				.catch(error => {
+					return this.$msg('系统繁忙，请稍后重试！');
+				});
+		},
 		getKeepCountTypeList(openid) {
 			this.$request({ url: `${getKeepCountType}?openid=${openid}` })
 				.then(resp => {
@@ -85,8 +161,27 @@ export default {
 		},
 		makeNoteOfIt() {
 			//先判断用户是否登录
-			this.getKeepCountTypeList('');
+			const { openid } = uni.getStorageSync('openid');
+			this.getKeepCountTypeList(openid);
 			this.show = true;
+		},
+		//提交订单
+		async enterSubmitBill(obj) {
+			console.log(obj);
+			const { openid } = uni.getStorageSync('openid');
+			const result = await this.$request({ url: addBillRecords, data: { ...obj, openid }, method: 'POST' });
+			if (result.statusCode === 200) {
+				const { code, msg } = result.data;
+				if (code === 0) {
+					this.$msg(msg, 'success');
+					//关闭账单
+					this.show = false;
+				} else {
+					this.$msg(msg);
+				}
+			} else {
+				return this.$msg('系统错误,请稍后重试!');
+			}
 		}
 	}
 };
@@ -95,7 +190,7 @@ export default {
 <style lang="scss" scoped>
 .cotainer {
 	width: 100vw;
-	height: 100vh;
+	// height: 100vh;
 	box-sizing: border-box;
 }
 .header_box {
@@ -166,9 +261,7 @@ export default {
 		border-radius: 20rpx;
 		overflow: hidden;
 		box-shadow: 1rpx 3rpx 5rpx 4rpx rgba(0, 0, 0, 0.1);
-		&:not(:last-child) {
-			margin-bottom: 20rpx;
-		}
+		margin-bottom: 20rpx;
 	}
 	.item-header__box {
 		width: 100%;
@@ -241,6 +334,63 @@ export default {
 		color: #68a1e8;
 		font-weight: bold;
 		margin-left: 10rpx;
+	}
+}
+.body-list__box {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 20rpx 30rpx;
+	.body-item__box {
+		display: flex;
+		padding-bottom: 20rpx;
+	}
+	.item-left__box {
+		flex: 0 0 80rpx;
+		display: flex;
+		justify-content: center;
+		margin-right: 30rpx;
+		text {
+			display: inline-block;
+			width: 80rpx;
+			height: 80rpx;
+			border-radius: 50%;
+			box-sizing: border-box;
+			font-size: 54rpx;
+			color: #ffffff;
+			text-align: center;
+			line-height: 80rpx;
+			vertical-align: middle;
+		}
+	}
+	.item-right__box {
+		flex: 0 0 calc(100% - 110rpx);
+		display: flex;
+	}
+	.right-left__box {
+		flex: 0 0 70%;
+		text {
+			display: inline-block;
+			width: 100%;
+			&:nth-child(1) {
+				font-size: 28rpx;
+				font-weight: bold;
+				margin-bottom: 16rpx;
+			}
+			&:nth-child(2) {
+				color: rgb(179, 179, 179);
+				font-size: 24rpx;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				overflow: hidden;
+				width: 300rpx;
+			}
+		}
+	}
+	.right__box {
+		flex: 0 0 30%;
+		text-align: right;
+		font-size: 38rpx;
+		font-weight: bold;
 	}
 }
 </style>

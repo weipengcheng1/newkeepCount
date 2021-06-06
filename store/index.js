@@ -12,7 +12,6 @@ import {
 } from "@/util/util.js";
 const store = new Vuex.Store({
 	state: {
-
 	},
 	mutations: {
 		async login() {

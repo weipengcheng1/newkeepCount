@@ -14,11 +14,12 @@ Vue.prototype.$msg = (title, icon = 'none') => {
 }
 
 import {
-	request
+	request,
+	getSystemInfo
 } from "@/util/util.js";
 
 Vue.prototype.$request = request;
-
+Vue.prototype.$system = getSystemInfo
 
 Vue.config.productionTip = false
 

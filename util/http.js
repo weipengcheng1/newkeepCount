@@ -14,3 +14,13 @@ export const regUserInfo = url + "/user/regUser";
  * 获取记账类型列表
  */
 export const getKeepCountType = url + "/type/getTypeList";
+
+/**
+ * 添加账单
+ */
+export const addBillRecords = url + "/bill/addBillRecords";
+
+/**
+ * 获取账单列表
+ */
+export const getBillList=url+"/bill/getBillList";

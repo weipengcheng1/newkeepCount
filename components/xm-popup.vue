@@ -50,9 +50,17 @@
 							</scroll-view>
 						</view>
 						<!-- 备注 -->
-						<view class="body-note__box" @click="addBillNote"><text>添加备注</text></view>
+						<view class="body-note__box" @click="addBillNote">
+							<text v-if="tallyObj.noteValue" style="color: #333333;font-size: 26rpx;">
+								{{ tallyObj.noteValue }}
+								<text style="margin-left: 20rpx;color: #68a1e8;font-size: 34rpx;">修改</text>
+							</text>
+							<text v-else>添加备注</text>
+						</view>
 						<!-- 键盘 -->
-						<view class="body-key__box"><xm-keyboard :enter-bg="tallyObj.enterBg" @key-item-click="keyItemClick" @enter-key="enterSubmitBill"></xm-keyboard></view>
+						<view class="body-key__box">
+							<xm-keyboard :enter-bg="tallyObj.enterBg" @key-item-click="keyItemClick" @enter-key="enterSubmitBill" @key-item-delete="keyItemDelete"></xm-keyboard>
+						</view>
 					</view>
 				</view>
 			</view>
@@ -117,18 +125,34 @@ export default {
 			if (val) this.isActiveClass();
 		},
 		show(val) {
-			console.log(val);
 			this.popupShow = val;
+			//重置数据
+			if (!val) {
+				this.tallyObj.type = 'pay';
+				this.isActiveClass();
+				this.tallyObj.nowDate = new Date().getTime();
+				this.tallyObj.inputVal = '';
+				this.tallyObj.enterBg = '#92c3e8';
+				this.tallyObj.noteValue = '';
+			}
 		}
 	},
 	computed: {
 		popupShow: {
-			get(){
-				return this.show
+			get() {
+				return this.show;
 			},
 			set() {
 				return this.show;
 			}
+		},
+		nowFomat() {
+			let date = new Date(this.tallyObj.nowDate);
+			let year = date.getFullYear();
+			let month = date.getMonth() + 1;
+			let day = date.getDate();
+			let timeFormat = `${year}-${month <= 9 ? '0' + month : month}-${day <= 9 ? '0' + day : day}`;
+			return timeFormat;
 		}
 	},
 	filters: {
@@ -155,8 +179,11 @@ export default {
 		//确认提交账单
 		enterSubmitBill() {
 			//获取参数
-			const { type, typeId, nowDate, inputVal, noteValue } = this.tallyObj;
+			let { type, typeId, nowDate, inputVal, noteValue } = this.tallyObj;
 			if (inputVal.length <= 0) return this.$msg('请输入正确金额！');
+			nowDate = Math.round(nowDate / 1000);
+			//进行提交
+			this.$emit('enter-submit', { type, typeId, nowDate, inputVal: Number(inputVal), noteValue, nowFormat: this.nowFomat });
 		},
 		//选择小类
 		chooseTypeDir(id) {
@@ -174,14 +201,36 @@ export default {
 		},
 		calendarChange(e) {
 			const { result } = e;
+			console.log(e);
 			this.tallyObj.nowDate = new Date(result).getTime();
 		},
 		//键盘输入
 		keyItemClick(item) {
+			let { inputVal } = this.tallyObj;
+			if (item == '.') {
+				let keyDataArr = inputVal.split('');
+				let filterArr = keyDataArr.filter(it => {
+					return it === '.';
+				});
+				if (filterArr.length >= 1) return;
+			}
+			inputVal += item;
+			if (Number(inputVal) >= 1000000) return this.$msg('输入金额不能大于1000000');
 			this.tallyObj.enterBg = this.isSceneBgColor(this.tallyObj.type, item);
-			this.tallyObj.inputVal = item;
+			this.tallyObj.inputVal = inputVal;
 		},
-
+		//键盘删除
+		keyItemDelete() {
+			//先将string转换成array
+			let { inputVal } = this.tallyObj;
+			if (!inputVal) return;
+			let keyDataArr = inputVal.split('');
+			//删除数组最后一位
+			keyDataArr.splice(-1);
+			//array-->string
+			let str = keyDataArr.join('');
+			this.tallyObj.inputVal = str;
+		},
 		//判断当前场景颜色
 		isSceneBgColor(type, intVal) {
 			let bgColor = '';
@@ -210,8 +259,8 @@ export default {
 		addBillNote() {
 			this.caleObj.noteShow = true;
 		},
-		closePopup(){
-			this.$emit("close")
+		closePopup() {
+			this.$emit('close');
 		}
 	}
 };
